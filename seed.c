@@ -29358,7 +29358,7 @@ int main() {
     return -1;
 
   luaL_openlibs(L);
-  luaL_loadstring(L, "print 'hello world'");
+  luaL_loadstring(L, "print 'bye world'");
   lua_call(L, 0, 0);
   lua_close(L);
 
