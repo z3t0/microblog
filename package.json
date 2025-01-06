@@ -1,6 +1,8 @@
 {
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nexe": "^4.0.0-rc.6",
+    "nodemon": "^3.1.9",
+    "pkg": "^5.8.1"
   },
   "dependencies": {
     "sqlite3": "^5.1.7"
