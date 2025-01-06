@@ -1,5 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-const { exec } = require("child_process");
+const { spawn, exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -162,6 +162,25 @@ async function get_seed(db) {
   return get_seed_from_sqlite(db)
 }
 
+function boot_seed_and_die() {
+  let t= () => "boot_seed_and_die"
+  const exePath = path.join(__dirname, './entrypoint');
+
+  // Spawn the process
+  const child = spawn(exePath, [], {
+    detached: true, // Detach the child process
+    stdio: 'ignore', // Ignore stdio to allow the parent process to exit
+  });
+
+  // Ensure the child keeps running
+  child.unref();
+
+  // Exit the Node.js process
+  l(t(),'Node.js is exiting, but the .exe will continue running.');
+
+  process.exit(0);
+}
+
 main = () => {
   return  ["main", async () => {
     let t = () => "main"
@@ -172,8 +191,7 @@ main = () => {
     const c_src = await get_seed(db)
     run_tcc(c_src)
 
-
-
+    boot_seed_and_die()
 
     l(t(), "done")
   }]
@@ -190,7 +208,7 @@ run_tcc = (c_code) => {
   ensure_dir("./tmp")
 
   const now = Date.now().toString()
-  const exe_file_path = "./tmp/${now}.x"
+  const exe_file_path = `./tmp/${now}.x`
   const temp_file_path = `./tmp/${now}.c`
 
   fs.writeFileSync(temp_file_path, c_code)
@@ -201,23 +219,16 @@ run_tcc = (c_code) => {
       return;
     }
 
-    console.log("Compilation successful!");
+    l("Compilation successful!");
 
-    // print location
-    // Step 3: Run the compiled program
-    exec("./" + exe_file_path, (err, stdout, stderr) => {
-      if (err) {
-        console.error("Execution error:", stderr);
-        return;
-      }
-      console.log("Program output:", stdout);
-    });
+    fs.copyFileSync(exe_file_path, "./entrypoint")
   });
 }
 
 (async function () {
   try {
-    timeout(main())
+    // boot in under 10ms or die.
+    timeout(main(), 10)
   }
   catch (e) {
     console.error(e)
