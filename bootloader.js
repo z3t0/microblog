@@ -176,7 +176,7 @@ function boot_seed_and_die() {
   child.unref();
 
   // Exit the Node.js process
-  l(t(),'Node.js is exiting, but the .exe will continue running.');
+  l(t(),'Node.js is exiting, but the  will continue running.');
 
   process.exit(0);
 }
@@ -189,8 +189,10 @@ main = () => {
     l({status})
 
     const c_src = await get_seed(db)
-    run_tcc(c_src)
+    l("before run tcc")
+    await run_tcc(c_src)
 
+    l("after")
     boot_seed_and_die()
 
     l(t(), "done")
@@ -213,16 +215,20 @@ run_tcc = (c_code) => {
 
   fs.writeFileSync(temp_file_path, c_code)
 
-  exec(`tcc -lm -o ${exe_file_path} ${temp_file_path}`, (err, stdout, stderr) => {
-    if (err) {
-      console.error("Compilation error:", stderr);
-      return;
-    }
+  return new Promise ((res, rej) => {
+    exec(`tcc -lm -o ${exe_file_path} ${temp_file_path}`, (err, stdout, stderr) => {
+      if (err) {
+        console.error("Compilation error:", stderr);
+        rej()
+        return;
+      }
 
-    l("Compilation successful!");
+      l("Compilation successful!");
 
-    fs.copyFileSync(exe_file_path, "./entrypoint")
-  });
+      fs.copyFileSync(exe_file_path, "./entrypoint")
+      res()
+    });
+  })
 }
 
 (async function () {
