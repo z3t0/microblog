@@ -1,4 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
+const { exec } = require("child_process");
+const fs = require("fs");
+const path = require("path");
 
 function getCallerFileAndLine(depth = 2) {
   const stack = new Error().stack.split("\n");
@@ -104,10 +107,10 @@ sqlite_health_check = (db) => {
 }
 
 function new_sqlite3() {
-  path = () => "./app.db"
+  db_path = () => "./app.db"
   permissions = () => sqlite3.OPEN_READ_WRITE
 
-  l("path", path())
+  l("path", db_path())
 
   // TODO: func fails silently if app.db is not a well-formed
   // sqlite3 database.
@@ -118,7 +121,7 @@ function new_sqlite3() {
     try {
       l("before new sqlite3.Database")
       res(new sqlite3.Database(
-        path(),
+        db_path(),
         permissions(), (err) => {
           if (err) {
             rej(err);
@@ -141,17 +144,39 @@ async function connect_to_sqlite() {
 main = () => {
   return  ["main", async () => {
     let t = () => "main"
-    l("running main")
-
     db = await connect_to_sqlite()
-    l("after connect_to_sqlite")
     status = await sqlite_health_check(db)
-    l("before status")
     l({status})
+
+    run_tcc()
+
     l(t(), "done")
   }]
 }
 
+run_tcc = () => {
+  const exe_file_path = "hello-world"
+  const c_file_path = "./experiments/hello-world/hello-world.c"
+
+  exec(`tcc -o ${exe_file_path} ${c_file_path}`, (err, stdout, stderr) => {
+    if (err) {
+      console.error("Compilation error:", stderr);
+      return;
+    }
+
+    console.log("Compilation successful!");
+
+    // print location
+    // Step 3: Run the compiled program
+    exec("./" + exe_file_path, (err, stdout, stderr) => {
+      if (err) {
+        console.error("Execution error:", stderr);
+        return;
+      }
+      console.log("Program output:", stdout);
+    });
+  });
+}
 
 (async function () {
   try {

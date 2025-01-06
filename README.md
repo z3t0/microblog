@@ -5,3 +5,4 @@
   - debian: python is python3
 - sqlite3
 - nodejs 20
+- libtcc-dev debian
