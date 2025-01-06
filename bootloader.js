@@ -38,7 +38,7 @@ a = apply
 timeout = (fn, kill_in) => {
   let t = () => "fn.timeout"
 
-  if (!kill_in) kill_in = 200
+  if (!kill_in) kill_in = 20
 
   name = fn[0]
   l(t(), fn[0], fn[1])
@@ -46,8 +46,8 @@ timeout = (fn, kill_in) => {
   return new Promise((res, rej) => {
     timeout = setTimeout(() => {
       if (!isDone()) {
-        l(t(), `rej ${fn[0]} after ${kill_in}`)
-        rej()
+        l(t(), `kill from ${fn[0]} after ${kill_in}`)
+        process.exit(1)
       }
     }, kill_in)
 
@@ -62,8 +62,6 @@ timeout = (fn, kill_in) => {
     ret = a(fn)
     on_time()
     res(ret)
-
-
   })
 }
 
@@ -140,6 +138,9 @@ async function connect_to_sqlite() {
   return db
 }
 
+async function get_seed() {
+  return fs.readFileSync(path.join(__dirname, "seed.c"), "utf8")
+}
 
 main = () => {
   return  ["main", async () => {
@@ -148,17 +149,32 @@ main = () => {
     status = await sqlite_health_check(db)
     l({status})
 
-    run_tcc()
+    const c_src = await get_seed()
+    run_tcc(c_src)
+
+
+
 
     l(t(), "done")
   }]
 }
 
-run_tcc = () => {
-  const exe_file_path = "hello-world"
-  const c_file_path = "./experiments/hello-world/hello-world.c"
+function ensure_dir(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
 
-  exec(`tcc -o ${exe_file_path} ${c_file_path}`, (err, stdout, stderr) => {
+run_tcc = (c_code) => {
+
+  ensure_dir("./tmp")
+
+  const now = Date.now().toString()
+  const exe_file_path = "./tmp/${now}.x"
+  const temp_file_path = `./tmp/${now}.c`
+  fs.writeFileSync(temp_file_path, c_code)
+
+  exec(`tcc -lm -o ${exe_file_path} ${temp_file_path}`, (err, stdout, stderr) => {
     if (err) {
       console.error("Compilation error:", stderr);
       return;
