@@ -29362,7 +29362,5 @@ int main() {
   lua_call(L, 0, 0);
   lua_close(L);
 
-  printf("bye, world!\n");
-
   return 0;
 }

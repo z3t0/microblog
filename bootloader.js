@@ -138,8 +138,28 @@ async function connect_to_sqlite() {
   return db
 }
 
-async function get_seed() {
-  return fs.readFileSync(path.join(__dirname, "seed.c"), "utf8")
+async function get_seed_from_sqlite(db) {
+
+  return new Promise((res, rej) =>
+  {
+    db.serialize(() => {
+      db.get(`SELECT c_src_code FROM src_rk_seed
+ORDER BY created_at DESC LIMIT 1;`, (err, row) => {
+        if (err) {
+          console.error(err.message);
+          rej(err)
+          return
+        }
+        res(row.c_src_code)
+      })
+    })
+
+  })
+
+}
+
+async function get_seed(db) {
+  return get_seed_from_sqlite(db)
 }
 
 main = () => {
@@ -149,7 +169,7 @@ main = () => {
     status = await sqlite_health_check(db)
     l({status})
 
-    const c_src = await get_seed()
+    const c_src = await get_seed(db)
     run_tcc(c_src)
 
 
@@ -172,6 +192,7 @@ run_tcc = (c_code) => {
   const now = Date.now().toString()
   const exe_file_path = "./tmp/${now}.x"
   const temp_file_path = `./tmp/${now}.c`
+
   fs.writeFileSync(temp_file_path, c_code)
 
   exec(`tcc -lm -o ${exe_file_path} ${temp_file_path}`, (err, stdout, stderr) => {
