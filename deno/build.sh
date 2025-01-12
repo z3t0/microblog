@@ -1,0 +1,1 @@
+deno compile -A -o microblog ./main.ts

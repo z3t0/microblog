@@ -1,8 +1,19 @@
+# Name
+- z, for zero(config|bs)
+- play on x.
+
+# Design
+
+- deno runtime
+- sqlite persistence
+- call cli for adding posts
+- post: text, date, tags
 
 
-- nexe
-  - requires python3
-  - debian: python is python3
+# requirements:
+- deno
 - sqlite3
-- nodejs 20
-- libtcc-dev debian
+
+## future
+- [ ] stable links 
+- [ ] ipfs or related for redundancy
