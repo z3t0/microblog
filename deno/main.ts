@@ -105,8 +105,7 @@ function serve_app(db: Database, port: number) {
   Deno.serve({port}, async (req: Request) => {
 
     const url = new URL(req.url);
-    console.log(url)
-
+    
     if (url.pathname == "/simple.css") {
       return new Response(simpleCss, 
       {headers: {"content-type": "text/css; charset=UTF-8"}},)
