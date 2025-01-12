@@ -28,8 +28,28 @@ function table_exists_p(db: Database) {
   }
 }
 
-function init_db() {
+function fs_exists(path: string) {
+  try {
+    Deno.statSync(path)
+    return true
+  }
+  catch (_) {
+    return false
+  }
+}
+
+function init_db({create = false} = {}) {
   const dbPath = "./app.db"
+
+  if (fs_exists(dbPath) && create) {
+    console.error("./app.db already exists")
+    Deno.exit(1)
+  }
+
+  if (!fs_exists(dbPath) && !create) {
+    console.error("./app.db does not exist")
+    Deno.exit(1)
+  }
 
   const db = new Database(dbPath);
 
@@ -39,10 +59,11 @@ function init_db() {
 }
 
 
-function get_posts(db: Database): Post[] {
-  const posts = db.prepare("SELECT * FROM posts").all()
+function get_posts(): Post[] {
+  const db = init_db()
+  const rows = db.prepare("SELECT * FROM posts").all()
 
-  return posts.map(post => {
+  const posts = rows.map(post => {
     return {
       guid: post.guid,
       content: post.content,
@@ -50,6 +71,10 @@ function get_posts(db: Database): Post[] {
       created_at: post.created_at
     }
   })
+
+  db.close()
+
+  return posts
 }
 
 function add_post(db: Database, content: string, tags: string[]) {
@@ -60,7 +85,6 @@ function add_post(db: Database, content: string, tags: string[]) {
 
   const guid = crypto.randomUUID();
 
-
   const rawSql = `INSERT INTO posts (guid, content, tags) VALUES (?, ?, ?);`
 
   db.prepare(rawSql).run(guid, content, tags.join(","))
@@ -68,10 +92,12 @@ function add_post(db: Database, content: string, tags: string[]) {
   console.log("post added")
 }
 
-function delete_post(db: Database, guid: string) {
+function delete_post(guid: string) {
+  const db = init_db()
   const rawSql = `DELETE FROM posts WHERE guid = ?;`
   db.prepare(rawSql).run(guid)
 
+  db.close()
 }
 
 function serve_app(db: Database, port: number) {
@@ -87,7 +113,7 @@ function serve_app(db: Database, port: number) {
     }
     
     if (url.pathname == "/") {
-    return new Response( index(get_posts(db)), 
+    return new Response( index(get_posts()), 
     {headers: {"content-type": "text/html; charset=UTF-8"}},)
     }
 
@@ -97,10 +123,31 @@ function serve_app(db: Database, port: number) {
   })
 }
 
+async function watch_app_db() {
+  const watcher = Deno.watchFs("./app.db")
+
+  for await (const event of watcher) {
+    console.log("db changed", event)
+  }
+}
+
+
 function main() {
 
   const args = Deno.args
 
+  if (args.length === 0) {
+    console.log(`usage:
+      ./microblog command
+      
+      commands:
+      serve
+      add <content> <tags>
+      ls
+      rm <guid>
+      create_db`)
+    Deno.exit(1)
+  }
 
   if (args[0] === "serve") {
     const db = init_db()
@@ -108,6 +155,10 @@ function main() {
     const port = 8000;
 
     serve_app(db, port)
+
+    watch_app_db()
+    
+
   }
 
   if (args[0] === "add") {
@@ -131,15 +182,12 @@ function main() {
   }
 
   if (args[0] === "ls") {
-    const db = init_db()
-    const posts = get_posts(db)
-    console.log(posts)
-    db.close()
+    console.log(get_posts())
+    
     Deno.exit(0)
   }
 
   if (args[0] === "rm") {
-    const db = init_db()
     const id = args[1]
 
     if (!id) {
@@ -147,7 +195,13 @@ function main() {
       Deno.exit(1)
     }
 
-    delete_post(db, id)
+    delete_post(id)
+    
+    Deno.exit(0)
+  }
+
+  if (args[0] === "create_db") {
+    const db = init_db({create: true})  
     db.close()
     Deno.exit(0)
   }
