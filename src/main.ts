@@ -177,14 +177,18 @@ function main() {
 
   if (args.length === 0) {
     console.log(`usage:
-      ./microblog command
-      
-      commands:
-      serve
-      add <content> <tags>
-      ls
-      rm <guid>
-      create_db`);
+./microblog [command]
+
+http commands
+  serve - go to localhost:8000
+  author - go to localhost:8001
+
+cli commands
+  add <content> <tags>
+  ls
+  rm <guid>
+  create_db
+      `);
     Deno.exit(1);
   }
 
