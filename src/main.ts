@@ -57,9 +57,22 @@ function init_db({ create = false } = {}) {
   return db;
 }
 
+function get_post(guid: string): Post{
+  
+  const post = get_posts().find((post) => post.guid === guid);
+
+  if (!post) {
+    throw new Error("post not found with guid: " + guid);
+  }
+
+  return post as Post;
+}
+
 function get_posts(): Post[] {
   const db = init_db();
   const rows = db.prepare("SELECT * FROM posts").all();
+
+  // TODO: runtime validation of post as Post type
 
   const posts = rows.map((post) => {
     return {
@@ -87,8 +100,11 @@ function add_post(content: string, tags: string[]) {
 
   const db = init_db();
   db.prepare(rawSql).run(guid, content, tags.join(","));
+  db.close();
 
   console.log("post added");
+
+  
 }
 
 function delete_post(guid: string) {
@@ -130,7 +146,7 @@ function serve_author(port: number) {
     }
 
     if (url.pathname == "/author") {
-      return new Response(author(), {
+      return new Response(author(get_posts()), {
         headers: { "content-type": "text/html; charset=UTF-8" },
       });
     }
@@ -152,9 +168,10 @@ function serve_author(port: number) {
       } else {
         return new Response("content and tags are required", { status: 400 });
       }
-    } else {
-      return new Response("not found", { status: 404 });
     }
+    
+      return new Response("not found", { status: 404 });
+    
   });
 }
 

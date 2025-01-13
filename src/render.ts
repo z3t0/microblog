@@ -42,8 +42,11 @@ function index(posts: Post[]) {
 
 }
 
-function author () {
-    return wrapper("Create Post", `
+function author (posts: Post[]) {
+
+    
+    return wrapper("Author", `
+        <h2>Create Post</h2>
         <form method="post" action="/create_post">
             <textarea name="content" placeholder="content"></textarea>
             <input type="text" name="tags" placeholder="emacs, lisp"  pattern="^([a-zA-Z0-9]+)(,[a-zA-Z0-9]+)*$">
@@ -52,4 +55,8 @@ function author () {
     `)
 }
 
-export { index, author }
+function message (message: string) {
+    return wrapper("Message", `<p>${message}</p>`)
+}
+
+export { index, author, message};
