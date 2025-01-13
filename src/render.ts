@@ -1,11 +1,6 @@
 import { Post } from "./model.ts";
 
 
-function renderPost(post: Post) {
-  const shortContent = post.content.length > 50 ? post.content.slice(0, 50) + '...' : post.content;
-    return `<li><a href="/posts/${post.guid}">${shortContent}</a></li>`
-}
-
 function wrapper(title: string, content: string) {
     return `
     <!DOCTYPE html>
@@ -24,11 +19,23 @@ function wrapper(title: string, content: string) {
     `
 }
 
+function post(post: Post) {
+  return wrapper("", `
+<p class="post-post-content">${post.content}</p>
+<p>${post.tags}</p>
+`)
+}
+
 function index(posts: Post[]) {
 
-    const title = "rafikhan's microblog"
+  const title = "rafikhan's microblog"
 
-    return wrapper(title, `
+  function renderPost(post: Post) {
+    const shortContent = post.content.length > 50 ? post.content.slice(0, 50) + '...' : post.content;
+    return `<li><a href="/posts/${post.guid}">${shortContent}</a></li>`
+  }
+
+  return wrapper(title, `
 
         <ul>
             ${posts.map(renderPost).join('')}
@@ -55,4 +62,6 @@ function message (message: string) {
     return wrapper("Message", `<p>${message}</p>`)
 }
 
-export { index, author, message};
+const Render =  { index, author, message, post};
+
+export { Render }

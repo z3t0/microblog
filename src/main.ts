@@ -1,8 +1,8 @@
 import { Database } from "jsr:@db/sqlite@0.12";
-import * as uuid from "jsr:@std/uuid";
 import { Post } from "./model.ts";
-import { author, index } from "./render.ts";
+import { Render } from "./render.ts";
 import { simpleCss } from "./simpleCss.ts";
+import { indexCss } from "./indexCss.ts";
 
 function create_table(db: Database) {
   const rawSql = `CREATE TABLE posts (
@@ -114,14 +114,36 @@ function serve_app(db: Database, port: number) {
       });
     }
 
+    if (url.pathname == "/index.css") {
+      return new Response(indexCss, {
+        headers: { "content-type": "text/css; charset=UTF-8" },
+      });
+    }
+
     if (url.pathname == "/") {
-      return new Response(index(get_posts()), {
+      return new Response(Render.index(get_posts()), {
         headers: { "content-type": "text/html; charset=UTF-8" },
       });
-    } else {
-      return new Response("not found", { status: 404 });
     }
-  });
+
+    if (url.pathname.startsWith("/posts/")) {
+
+      const postId = url.pathname.split("/")[2];
+
+      const post = get_posts().find((post) => post.guid === postId);
+
+      if (!post) {
+        return new Response("post not found", { status: 404 });
+      }
+
+      return new Response(Render.post(post), {
+        headers: { "content-type": "text/html; charset=UTF-8" },
+      })
+    }
+
+    return new Response("not found", { status: 404 });
+
+  })
 }
 
 function serve_author(port: number) {
@@ -135,7 +157,7 @@ function serve_author(port: number) {
     }
 
     if (url.pathname == "/") {
-      return new Response(author(get_posts()), {
+      return new Response(Render.author(get_posts()), {
         headers: { "content-type": "text/html; charset=UTF-8" },
       });
     }

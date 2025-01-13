@@ -29,6 +29,11 @@ http://localhost:8001/backup to get copy of sqlite db
 - deno
 - sqlite3
 
+## mvp
+- [ ] produce a single, crossplatform binary
+- [ ] target 5mb runtime? something small...
+
 ## future
+- [ ] add comprehensive tests
 - [ ] stable links 
 - [ ] ipfs or related for redundancy
