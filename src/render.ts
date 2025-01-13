@@ -5,11 +5,6 @@ function renderPost(post: Post) {
     return `<li><a href="/posts/${post.guid}">${post.content}</a></li>`
 }
 
-function simpleCss() {
-    
-
-}
-
 function wrapper(title: string, content: string) {
     return `
     <!DOCTYPE html>
