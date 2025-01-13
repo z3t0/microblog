@@ -57,17 +57,6 @@ function init_db({ create = false } = {}) {
   return db;
 }
 
-function get_post(guid: string): Post{
-  
-  const post = get_posts().find((post) => post.guid === guid);
-
-  if (!post) {
-    throw new Error("post not found with guid: " + guid);
-  }
-
-  return post as Post;
-}
-
 function get_posts(): Post[] {
   const db = init_db();
   const rows = db.prepare("SELECT * FROM posts").all();
