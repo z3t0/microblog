@@ -134,9 +134,22 @@ function serve_author(port: number) {
       });
     }
 
-    if (url.pathname == "/author") {
+    if (url.pathname == "/") {
       return new Response(author(get_posts()), {
         headers: { "content-type": "text/html; charset=UTF-8" },
+      });
+    }
+
+    if (url.pathname == "/backup") {
+      const dbFile = "./app.db";
+      const fileData = await Deno.readFile(dbFile);
+
+      return new Response(fileData, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "Content-Disposition": `attachment; filename="app.db"`,
+        },
       });
     }
 
