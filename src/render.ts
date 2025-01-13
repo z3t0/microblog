@@ -2,7 +2,8 @@ import { Post } from "./model.ts";
 
 
 function renderPost(post: Post) {
-    return `<li><a href="/posts/${post.guid}">${post.content}</a></li>`
+  const shortContent = post.content.length > 50 ? post.content.slice(0, 50) + '...' : post.content;
+    return `<li><a href="/posts/${post.guid}">${shortContent}</a></li>`
 }
 
 function wrapper(title: string, content: string) {
