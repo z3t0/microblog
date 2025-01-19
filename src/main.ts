@@ -175,26 +175,44 @@ function serve_author(port: number) {
       });
     }
 
-    if (url.pathname == "/create_post") {
-      const formData = await req.formData();
+    async function createPost() {
 
-      if (formData.has("content") && formData.has("tags")) {
-        const content = formData.get("content");
-        const tags = formData.get("tags");
+      function parseTags(tags: any) {
+        if (!tags) {return []}
 
-        if (
-          content && tags && typeof content === "string" &&
-          typeof tags === "string"
-        ) {
-          add_post(content, tags.split(","));
-          return new Response("post created", { status: 201 });
+        if (typeof tags == "string") {
+          return tags.split(",")
         }
-      } else {
-        return new Response("content and tags are required", { status: 400 });
+
+        throw new Error("could not parse tags")
+      }
+
+
+      if (url.pathname == "/create_post") {
+        const formData = await req.formData();
+
+        if (formData.has("content") && formData.has("tags")) {
+          const content = formData.get("content");
+          const tags = parseTags(formData.get("tags"))
+
+          if (content && tags && typeof content === "string") {
+            add_post(content, tags);
+            return new Response("post created", { status: 201 });
+          }
+        } else {
+          return new Response("content and tags are required", { status: 400 });
+        }
       }
     }
+
+
+    const createPostRes = await createPost()
+
+    if (createPostRes) {
+      return createPostRes;
+    }
     
-      return new Response("not found", { status: 404 });
+    return new Response(Render.message("error posting"), { status: 500 });
     
   });
 }
@@ -215,15 +233,15 @@ function main() {
 ./microblog [command]
 
 http commands
-  serve - go to localhost:8000
-  author - go to localhost:8001
+serve - go to localhost:8000
+author - go to localhost:8001
 
 cli commands
-  add <content> <tags>
-  ls
-  rm <guid>
-  create_db
-      `);
+add <content> <tags>
+ls
+rm <guid>
+create_db
+`);
     Deno.exit(1);
   }
 
