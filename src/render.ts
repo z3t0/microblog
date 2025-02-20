@@ -1,7 +1,10 @@
 import { Post } from "./model.ts";
+import { ga_tag } from "./ga.ts";
 
 
 function wrapper(title: string, content: string) {
+  const ga_tag_str = ga_tag()
+
     return `
     <!DOCTYPE html>
         <html lang="en">
@@ -9,8 +12,9 @@ function wrapper(title: string, content: string) {
          <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${title}</title>
-            <link rel="stylesheet" href="/simple.css">
-            <link rel="stylesheet" href="/index.css">
+        <link rel="stylesheet" href="/simple.css">
+        <link rel="stylesheet" href="/index.css">
+        ${ga_tag_str}
         </head>
         <body>
         <h1>${title}</h1>
