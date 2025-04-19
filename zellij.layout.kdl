@@ -1,0 +1,44 @@
+layout {
+    default_tab_template {
+        pane {
+            size 1
+            borderless true
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane {
+            size 2
+            borderless true
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="🧮 SERVERS" focus=true split_direction="vertical" {
+            pane {
+                name "Reader | 8000"
+                command "sh"
+                args "-c" "./build/microblog serve"
+                start_suspended true
+            }
+            pane {
+                name "Author | 8001"
+                command "sh"
+                args "-c" "./build/microblog author"
+                start_suspended true
+            }
+            pane {
+                name "Microblog REPL"
+                command "sh"
+                args "-c" "./build/microblog"
+                start_suspended true
+            }
+        floating_panes {
+            pane {
+                focus true
+                name "Build"
+                command "deno"
+                args "compile" "-A" "-o" "build/microblog" "./src/main.ts"
+                close_on_exit true
+            }
+        }
+    }
+}
