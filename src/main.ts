@@ -59,7 +59,7 @@ function init_db({ create = false } = {}) {
 
 function get_posts(): Post[] {
   const db = init_db();
-  const rows = db.prepare("SELECT * FROM posts").all();
+  const rows = db.prepare("SELECT * FROM posts ORDER BY datetime(created_at) DESC").all();
 
   // TODO: runtime validation of post as Post type
 
