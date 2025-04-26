@@ -1,6 +1,10 @@
 import { Post } from "./model.ts";
 import { ga_tag } from "./ga.ts";
 
+function interpretAsUTC(date: string) {
+  return new Date(
+    date.replace(" ", "T") + "Z")
+}
 
 function wrapper(title: string, content: string) {
   const ga_tag_str = ga_tag()
@@ -31,20 +35,87 @@ function post(post: Post) {
 `)
 }
 
+
+function groupPostsByDate(posts: Post[]) {
+  const grouped = new Map<string, Post[]>();
+
+  // Group Posts by Date
+  posts.map((post) => {
+    function keyOfDay(date: Date) {
+      // ignore hr, min and sec to bin by day only.
+      date.setHours(0)
+      date.setMinutes(0)
+      date.setSeconds(0)
+
+      return date.toISOString()
+    }
+
+    const binKey = keyOfDay(interpretAsUTC(post.created_at))
+    
+    let datedPosts = grouped.get(binKey)
+    if (!datedPosts) {
+      datedPosts = []
+      grouped.set(binKey, datedPosts)
+    }
+
+    datedPosts.push(post)
+    datedPosts.sort((a: Post, b: Post) => {
+      if (a.created_at < b.created_at) return -1;
+      if (b.created_at < a.created_at) return 1;
+      return 0;
+    })
+  })
+
+  return grouped
+}
+
+function renderPost(post: Post) {
+  const shortContent = post.content.length > 50 ? post.content.slice(0, 50) + '...' : post.content;
+  return `<li><a href="/posts/${post.guid}">${shortContent}</a></li>`
+}
+
+function renderIndexForDate(dateBin: string, posts: Post[]) {
+  function formatDate(date: Date) {
+    return date.toUTCString()
+  }
+
+  const dateLabel =
+    formatDate(new Date(dateBin))
+
+
+  const rendered = posts.map(renderPost).join('\n')
+
+
+  return (
+    `<div>
+      <h4> ${dateLabel}</h4>
+      <ul>
+      ${rendered}
+      </ul>
+    </div>`)
+}
+
 function index(posts: Post[]) {
 
   const title = "rafikhan's microblog"
 
-  function renderPost(post: Post) {
-    const shortContent = post.content.length > 50 ? post.content.slice(0, 50) + '...' : post.content;
-    return `<li><a href="/posts/${post.guid}">${shortContent}</a></li>`
-  }
+
+  let processedPosts = groupPostsByDate(posts)
+
+  console.log([processedPosts.keys()].length, posts.length)
+  let index = ``
+
+  processedPosts.forEach((posts: Post[], date, _) => {
+    if (!posts) return
+    
+    index += renderIndexForDate(date, posts)
+  })
+
 
   return wrapper(title, `
-
-        <ul>
-            ${posts.map(renderPost).join('')}
-        </ul>
+    <ul>
+      ${index}
+    </ul>
 
     `);
 
@@ -69,4 +140,6 @@ function message (message: string) {
 
 const Render =  { index, author, message, post};
 
-export { Render }
+const _Testing = { groupPostsByDate }
+
+export { Render, _Testing }
