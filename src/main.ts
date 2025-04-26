@@ -136,7 +136,7 @@ function serve_app(db: Database, port: number) {
         return new Response("post not found", { status: 404 });
       }
 
-      return new Response(Render.post(post), {
+      return new Response(Render.postPage(post), {
         headers: { "content-type": "text/html; charset=UTF-8" },
       })
     }

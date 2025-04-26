@@ -69,9 +69,28 @@ function groupPostsByDate(posts: Post[]) {
   return grouped
 }
 
+function title(post: Post) {
+  return post.content.split("\n")[0].slice(0, 50)
+}
+
+function shorten(str: string) {
+  if (str.length < 50) return str;
+
+  return str.slice(0, 50) + "..."
+}
+
 function renderPost(post: Post) {
-  const shortContent = post.content.length > 50 ? post.content.slice(0, 50) + '...' : post.content;
-  return `<li><a href="/posts/${post.guid}">${shortContent}</a></li>`
+  return `<li><a href="/posts/${post.guid}">${shorten(title(post)) }</a></li>`
+}
+
+function postPage(post: Post) {
+
+  console.log({title : title(post)})
+
+  return wrapper(title(post),
+    `<p class="post-post-content">${post.content}</p>
+<p>${post.tags}</p>
+`)
 }
 
 function dayName(fromDayNumber: number) {
@@ -171,7 +190,9 @@ function message (message: string) {
     return wrapper("Message", `<p>${message}</p>`)
 }
 
-const Render =  { index, author, message, post};
+const Render =  {
+  index, author, message, postPage
+};
 
 const _Testing = { groupPostsByDate }
 
