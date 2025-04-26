@@ -74,9 +74,42 @@ function renderPost(post: Post) {
   return `<li><a href="/posts/${post.guid}">${shortContent}</a></li>`
 }
 
+function dayName(fromDayNumber: number) {
+  switch (fromDayNumber) {
+    case 0: return "Sun"
+    case 1: return "Mon"
+    case 2: return "Tue"
+    case 3: return "Wed"
+    case 4: return "Thu"
+    case 5: return "Fri"
+    case 6: return "Sat"
+  }
+}
+
+function monthName(from: number) {
+  switch (from) {
+    case 0: return "Jan"
+    case 1: return "Feb"
+    case 2: return "Mar"
+    case 3: return "Apr"
+    case 4: return "May"
+    case 5: return "Jun"
+    case 6: return "Jul"
+    case 7: return "Aug"
+    case 8: return "Sep"
+    case 9: return "Oct"
+    case 10: return "Nov"
+    case 11: return "Dec"
+  }
+}
+
 function renderIndexForDate(dateBin: string, posts: Post[]) {
   function formatDate(date: Date) {
-    return date.toUTCString()
+    return dayName(date.getUTCDay()) + " "
+      + date.getUTCDate() + " "
+      + monthName(date.getUTCMonth()) + " " +
+      date.getUTCFullYear()
+
   }
 
   const dateLabel =
