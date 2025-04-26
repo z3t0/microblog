@@ -18,5 +18,23 @@ Deno.test("groupPostsByDate", () => {
 
   const res = _Testing.groupPostsByDate(testPosts)
 
-  assertEquals(Array.from(res.keys()).length, 3, "the 10 posts should be grouped into 3 days")
+  const keys = Array.from(res.keys())
+
+  assertEquals(keys.length, 3, "the 10 posts should be grouped into 3 days")
+
+  const dates = [
+    "2025-04-25T04:00:00.000Z",
+    "2025-04-23T04:00:00.000Z",
+    "2025-04-22T04:00:00.000Z"
+  ]
+
+
+  dates.map((date) => {
+    assertEquals(res.has(date), true)
+  })
+
+  // Check existence of certain posts
+  assertEquals(res.get(dates[1])[0], testPosts[8])
+  assertEquals(res.get(dates[2])[0], testPosts[9])
+
 })
